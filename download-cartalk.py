@@ -12,10 +12,25 @@ from os.path import isfile, join
 from bs4 import BeautifulSoup
 import errno
 import requests
-URL = "https://www.npr.org/podcasts/510208/car-talk"
-SAVE_DIR = ""
+#URL = "https://www.npr.org/podcasts/510208/car-talk"
+URL = "https://www.npr.org/podcasts/510208/car-talk/partials?start="
+SAVE_DIR = "./test/"
+indices = [0,25,49,64,87,110,134,154,180,200,223,247,271]
 
-def save_download_links(urls,save_dir):
+def save_download_links(urls,save_dir,i):
+    num_urls = len(urls)
+    for url in urls:
+        r = requests.get(url, allow_redirects=True)
+        header = r.headers
+        content_type = header.get('content-type')
+        cd = header.get('content-disposition')
+        content = r.content
+        fname = save_dir + "best_of_car_talk_" + str(i) + ".mp3"
+        with open(fname,'wb') as f:
+            f.write(content)
+        i = i + 1
+
+
     return None
 
 # get all the direct links to episodes
@@ -29,12 +44,16 @@ def get_download_links(url):
     # find all the links 
     links = soup.findAll(href=re.compile(r"https://play.podtrac.com/.*",re.IGNORECASE))
 
+    for l in links:
+        dl_links.append(l.attrs['href'])
+
     return dl_links
 
 def main():
-    download_links = get_download_links(URL)
-
-    save_download_links(download_links,SAVE_DIR)
+    for i in indices:
+        url = URL + str(i)
+        download_links = get_download_links(url)
+        save_download_links(download_links,SAVE_DIR,i)
 
 
 if __name__=='__main__':
